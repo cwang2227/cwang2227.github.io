@@ -22,7 +22,10 @@
 
 
 h1 {
-    position: relative;
+    position:
+    
+    
+    relative;
     top: 200px;
 }
 
@@ -46,6 +49,18 @@ h1 {
     font-size: 8vw;
 }
 
+#web_ring{
+    width:10vw;
+    height:auto;
+    position:absolute;
+    bottom:10px;
+    right:10px;
+}
+
+#web_ring:hover{
+    transform:scale(1.1)translateZ(20px);
+    cursor:pointer;
+}
 
 #page2 {
     z-index: 2;
@@ -182,7 +197,7 @@ a:hover {
     border-left: 300px solid transparent;
     border-right: 300px solid transparent;
     border-bottom: 1000px solid rgba(255, 255, 255, 0.2);
-    top: -350px;
+    bottom: calc(+18vh);
 }
 
 #page3 {
