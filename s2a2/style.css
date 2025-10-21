@@ -88,7 +88,9 @@ input{
 
 #teapot{
     position: relative;
-    align-self:flex-end;
+    margin-left: calc(50vw - 20px);
+    width: 50vw;
+    overflow: hidden;
     transition: transform 0.8s ease;
     transform-origin: bottom-left;
 }
@@ -113,19 +115,17 @@ input{
 
 #teacup > img{
   display:block;
-  margin:0 auto;
-  height:25vh;
-  width:auto;
+  margin-left: 25vw;
+  width:50vw;
 }
 
 #tea {
     position: absolute;
-    top: 8%;
-    left: 45%;
-    width: 100px;
-    height: 53px;
+    top: 4vw;
+    left: 38vw;
+    width: 27vw;
+    height: 14.5vw;
     border-radius:50%;
-    border: 1px solid black;
     transition: background-color 3s ease-in;
 }
 
