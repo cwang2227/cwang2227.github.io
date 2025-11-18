@@ -1,0 +1,335 @@
+#homepage {
+    margin: 0;
+    min-height: 200vh;
+}
+
+
+#frontpage {
+    text-align: center;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    height: 100vh;
+    color: white;
+    background-color: black;
+    font-family: manifold-cf, sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 3vw;
+}
+
+
+h1 {
+    position:
+    relative;
+    top: 200px;
+}
+
+
+#lumonlogo {
+    width: 25vw;
+    height: auto;
+    position: relative;
+    top: 5vw;
+}
+
+
+#scroll {
+    position: absolute;
+    bottom: 10px;
+    left: calc(46vw);
+}
+
+
+.material-symbols-outlined {
+    font-size: 8vw;
+}
+
+#web_ring{
+    width:10vw;
+    height:auto;
+    position:absolute;
+    bottom:10px;
+    right:10px;
+}
+
+#web_ring:hover{
+    transform:scale(1.1)translateZ(20px);
+    cursor:pointer;
+}
+
+#page2 {
+    z-index: 2;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100%;
+    background-color: black;
+    font-family: manifold-cf, sans-serif;
+    font-style: normal;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+
+h2 {
+    position: absolute;
+    top: 50vh;
+    left: calc(50% + 25vw);
+    font-weight: 600;
+    font-size: 3.5vw;
+}
+
+
+a:link,
+a:visited {
+    color: white;
+    text-decoration: none;
+    transition: text-shadow 0.2s ease;
+}
+
+a:hover {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 1),
+        0 0 10px rgba(255, 255, 255, 1),
+        0 0 15px rgba(255, 255, 255, 1);
+    text-decoration: none;
+}
+
+#floor {
+    position: absolute;
+    height: 18vh;
+    width: 100vw;
+    bottom: 0;
+    left: 0;
+    background-color: #7DA17E;
+    border-width: 0.8px;
+    border-color: black;
+    border-style: solid;
+    box-sizing: border-box;
+}
+
+#elevatorwrapper {
+    position: relative;
+    height: 500px;
+    width: 300px;
+    background: linear-gradient(#ffffff, #ACD2EF)
+}
+
+#elevatortop {
+    position: relative;
+    height: 80px;
+    width: 300px;
+    background-color: #C0C0C0;
+    top: 0px;
+    border-width: 1px;
+    border-color: darkgrey;
+    border-style: solid;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#elevatorsign {
+    position: relative;
+    height: 40px;
+    width: 80px;
+    background-color: #71797E;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#elevatorarrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 20px solid #C4BEBE;
+    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.6))
+}
+
+.door {
+    position: absolute;
+    height: 420px;
+    width: 50px;
+    background-color: #DFE1E2;
+    top: 80px;
+    border-width: 1px;
+    border-color: darkgrey;
+    border-style: solid;
+    box-sizing: border-box;
+}
+
+#leftdoor {
+    left: 0px;
+}
+
+#rightdoor {
+    right: 0px;
+}
+
+#bar {
+    position: absolute;
+    height: 15px;
+    width: 200px;
+    background-color: #DFE1E2;
+    top: 50%;
+    left: 50px;
+    border-width: 1px;
+    border-color: darkgrey;
+    border-style: solid;
+    box-sizing: border-box;
+}
+
+#spotlight {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 300px solid transparent;
+    border-right: 300px solid transparent;
+    border-bottom: 1000px solid rgba(255, 255, 255, 0.2);
+    bottom: calc(+18vh);
+}
+
+#page3 {
+    margin: 0;
+    min-height: 100vh;
+}
+
+#startworkpage {
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #163F38;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+#closedleftdoor {
+    left: 0px;
+    width: 150px;
+}
+
+#closedrightdoor {
+    right: 0px;
+    width: 150px;
+}
+
+#glow-elevator-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 20px solid #FBD3AD;
+    filter: drop-shadow(0px 0px 5px rgba(255, 255, 255, 1));
+}
+
+#next {
+    position: absolute;
+    bottom: 10px;
+    left: calc(46vw);
+    color: white;
+}
+
+#wellness-check-page {
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #163F38;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: baseline;
+}
+
+#open-left-door {
+    left: 0px;
+    top: 0px;
+    height: 100vh;
+    width: 10vw;
+}
+
+#open-right-door {
+    right: 0px;
+    top: 0px;
+    height: 100vh;
+    width: 10vw;
+}
+
+#wellness-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items:center;
+    height: 100vh;
+    width: 80vw;
+    top: 0px;
+    left: 10vw;
+}
+
+
+#wellness-wrapper img {
+    width: 90%;
+    border:5px solid #ffffff;
+    box-sizing: border-box;
+}
+
+
+p {
+    color: white;
+    font-family: inter, sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 2vw;
+    text-align: center;
+}
+
+#button{
+    background-color:black;
+    height:4vw;
+    width:20vh;
+    border-radius: 10px;
+    border:2px solid #497967;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#lolpage{
+    background-color:red;
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#lolpage h1{
+    color:white;
+    font-family: inter, sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 10vw;
+    text-align: center;
+}
+
+#back-to-landing{
+    position: absolute;
+    bottom: 10px;
+    left: calc(90vw);
+    color: black;
+}
