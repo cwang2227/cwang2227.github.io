@@ -1,0 +1,111 @@
+body{
+    background-color:white;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    padding:0;
+    margin:0;
+}
+
+#fruitbody{
+    position:relative;
+    width:60vmin;
+    aspect-ratio:1 / 1;
+    border-radius:50%;
+    background-color:#DB2E63;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#fruit_top{
+    position:relative;
+    top:4vh;
+    width:0;
+    height:0;
+    border-left:12vmin solid transparent;
+    border-right:12vmin solid transparent;
+    border-bottom:23vmin solid #DB2E63;
+    aspect-ratio:1 / 1;
+}
+
+#fruitflesh{
+    position:absolute;
+    width:80%;
+    aspect-ratio:1 / 1;
+    border-radius:50%;
+    background-color:#FFFFFF;
+    overflow:hidden;
+}
+
+.fruitspikes{
+    position:absolute;
+    width:0;
+    height:0;
+    border-left:3vmin solid transparent;
+    border-right:3vmin solid transparent;
+    border-bottom:20vmin solid #26B506;
+    aspect-ratio:1/1;
+    z-index:1;
+}
+
+#spike1{
+    top:-8vmin;
+    left:5vmin;
+    transform:rotate(-45deg);
+}
+
+#spike2{
+    top:15vmin;
+    left:-7.5vmin;
+    transform:rotate(-45deg);
+}
+
+#spike3{
+    top:35vmin;
+    left:-2.5vmin;
+    transform:rotate(-70deg);
+}
+
+#spike4{
+    top:-8vmin;
+    right:5vmin;
+    transform:rotate(45deg);
+}
+
+#spike5{
+    top:15vmin;
+    right:-10vmin;
+    transform:rotate(60deg);
+}
+
+#spike6{
+    top:35vmin;
+    right:-4.5vmin;
+    transform:rotate(80deg);
+}
+
+.fruitspikes:hover{
+    animation: shake 0.25s;
+    animation-iteration-count:1;
+    cursor:pointer;
+}
+
+@keyframes shake{
+    0% {transform: rotate(0deg);}
+    25% {transform: rotate(5deg);}
+    50% {transform: rotate(0deg);}
+    75% {transform: rotate(-5deg);}
+    100% {transform: rotate(0 deg);}
+}
+
+#title{
+    position:relative;
+    text-align:center;
+    left:30vw;
+    top:-2vh;
+    font-size:3vw;
+    font-family:"crimson-text",serif;
+}
