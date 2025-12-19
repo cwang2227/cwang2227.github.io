@@ -7,15 +7,12 @@ var newShape;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  background(220);
+  background(250);
   state = 0;
-  // brushnumber = 3;
-;
 }
 
-
 function draw() {
-  background(255);
+  clear();
   shapeColor = color(random(0,255), random(0,255), random(0,255));
   shapes.forEach(function(shape) {
     shape.draw();

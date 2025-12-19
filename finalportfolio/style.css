@@ -12,13 +12,13 @@ html{
 
 
 body{
-    min-height:200vh;
     padding:0;
     margin:0;
     position:relative;
     user-select: none;
     -webkit-user-select: none;
     overflow-x:hidden;
+    min-height:100vh;
 }
 
 canvas{
@@ -32,7 +32,6 @@ canvas{
     position:relative;
     height:100vh;
     width:100vw;
-    background-color:rgba(28, 209, 209, 0.2);
 }
 
 #line {
@@ -160,9 +159,17 @@ h1{
 }
 
 #ASCII{
+    position:relative;
     height:16vh;
     width:12vw;
-    background-color:blue;
+}
+
+#ASCII img {
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    object-fit:cover;
+    display:block;
 }
 
 .page h1{
@@ -176,14 +183,22 @@ h1{
     flex-direction:row;
     align-items:center;
     gap:2rem;
-    top:30vh;
+    top:28vh;
     right:0;
 }
 
 #CSS{
     height:20vh;
     width:60vw;
-    background-color:blue;
+}
+
+#CSS img {
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    object-fit:cover;
+    display:block;
+    object-position: 50% 65%;
 }
 
 #Severancewrapper{
@@ -199,8 +214,16 @@ h1{
 #Severance{
     height:20vh;
     width:40vw;
-    background-color:blue;
 }
+
+#Severance img {
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    object-fit:cover;
+    display:block;
+}
+
 
 #WebRingwrapper{
     position:absolute;
@@ -215,8 +238,16 @@ h1{
 #WebRing{
     height:17vh;
     width:35vw;
-    background-color:blue;
 }
+
+#WebRing img {
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    object-fit:cover;
+    display:block;
+}
+
 
 #Teawrapper{
     position:absolute;
@@ -225,14 +256,23 @@ h1{
     align-items:center;
     gap:1rem;
     top:0;
-    left:5vw;
+    left:8vw;
 }
 
 #Tea{
-    height:40vh;
+    height:35vh;
     width:20vw;
-    background-color:blue;
 }
+
+
+#Tea img {
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    object-fit:cover;
+    display:block;
+}
+
 
 #clockwrapper{
     position:absolute;
@@ -240,15 +280,21 @@ h1{
     flex-direction:column;
     align-items:center;
     gap:1rem;
-    top:10vh;
+    top:15vh;
     right:15vw;
 }
 
 #clock{
-    height:35vmin;
-    width:35vmin;
+    height:40vmin;
+    width:40vmin;
     border-radius:50%;
-    background-color:blue;
+    overflow:hidden;
+}
+
+#Clock img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
 }
 
 #Scriptedwrapper{
@@ -259,13 +305,22 @@ h1{
     gap:1rem;
     bottom:0;
     left:0;
+    width:80vw;
 }
 
 #Script{
-    height:35vh;
-    width:35vw;
-    background-color:blue;
+    height:40vh;
+    width:60vw;
 }
+
+#Script img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    object-position: 50% 5%;
+}
+
 
 #IFTTTwrapper{
     position:absolute;
@@ -278,15 +333,22 @@ h1{
 }
 
 #IFTTT{
-    height:25vh;
-    width:30vw;
-    background-color:blue;
+    height:30vh;
+    width:35vw;
+}
+
+#IFTTT img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
 }
 
 #Generativewrapper{
     position:absolute;
     display:flex;
     flex-direction:column;
+    width:40vw;
     gap:1rem;
     bottom:0;
     left:3vw;
@@ -294,9 +356,16 @@ h1{
 
 #Generative{
     height:45vh;
-    width:30vw;
-    background-color:blue;
+    width:100%;
 }
+
+#Generative img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
 
 #readingswrapper{
     display:flex;
@@ -306,7 +375,7 @@ h1{
     bottom:5vh;
     right:5vw;
     height:auto;
-    width:20vw;
+    width:10vw;
     text-align:right;
 
 }
@@ -319,6 +388,6 @@ h1{
 }
 
 #book{
-    width:40px;
+    width:50px;
     height:auto;
 }
