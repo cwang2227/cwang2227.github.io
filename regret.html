@@ -266,11 +266,27 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
     </div>
   </div>
 
-</div><!-- .phone -->
-</div><!-- .wrap -->
+</div>
+</div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+//  SETUP — replace these two values with your own from JSONBin.io
+//
+//  HOW TO GET THEM (takes ~2 minutes):
+//  1. Go to https://jsonbin.io and create a free account
+//  2. Go to API Keys → copy your Master Key → paste below
+//  3. Click "Create Bin", paste this JSON: {"confessions":[]}
+//     set visibility to PUBLIC, click Create
+//  4. Copy the Bin ID from the URL or response → paste below
+// ════════════════════════════════════════════════════════════════
+var JSONBIN_API_KEY = '$2a$10$uIgCE8mY.4hub1ZNQIGgWeXHEPh9giJ/mTSLhtVP3QktsMwJOmgP2';
+var JSONBIN_BIN_ID  = '69cd56e5856a682189ee169f';
+
+var JSONBIN_URL = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID;
+var USING_SHARED_BACKEND = (JSONBIN_API_KEY !== 'YOUR_MASTER_KEY_HERE' && JSONBIN_BIN_ID !== 'YOUR_BIN_ID_HERE');
+
+// ── State ──────────────────────────────────────────────────────
 var count = 1;
 var recOn = false;
 var tiInt = null;
@@ -280,7 +296,6 @@ var simMode = false;
 var galaxyRaf = null;
 var currentAudio = null;
 
-// Recording internals
 var mediaRecorder = null;
 var audioChunks = [];
 var micStream = null;
@@ -288,41 +303,19 @@ var audioCtx = null;
 var analyser = null;
 var animFrame = null;
 
-// Waveform bars
 var NUM_BARS = 52;
 var vmBarEls = [];
 var idleRaf = null;
 var vmTargets = [];
 
-// Playback panel
-var pbBlob = null;      // the actual recorded Blob
-var pbURL = null;       // object URL for the blob
-var pbAudio = null;     // Audio element for playback
+var pbBlob = null;
+var pbURL = null;
+var pbAudio = null;
 var pbBars = [];
 var pbRaf = null;
 var pbIsPlaying = false;
 
-// In-memory confession store + localStorage fallback
-var memStore = {};
-function storeSave(k, v) {
-  memStore[k] = v;
-  try { localStorage.setItem(k, v); } catch(e) {}
-}
-function storeGet(k) {
-  if (memStore[k] !== undefined) return memStore[k];
-  try { return localStorage.getItem(k); } catch(e) { return null; }
-}
-function storeKeys(prefix) {
-  var keys = Object.keys(memStore).filter(function(k){ return k.indexOf(prefix) === 0; });
-  try {
-    Object.keys(localStorage).forEach(function(k){
-      if (k.indexOf(prefix) === 0 && keys.indexOf(k) === -1) keys.push(k);
-    });
-  } catch(e) {}
-  return keys;
-}
-
-// Seed confessions shown when no user ones exist
+// Seed confessions shown before any real ones exist
 var seedConfessions = [
   {type:'text', text:'I never told my father I was proud of him. He died thinking I was indifferent.'},
   {type:'text', text:'I left a city I loved because I was afraid of what staying would mean.'},
@@ -331,13 +324,13 @@ var seedConfessions = [
   {type:'text', text:'I said something cruel when I was twenty-two. The person forgave me. I never forgave myself.'},
 ];
 
-// ── Utilities ──────────────────────────────────────────────────────────────
+// ── Utilities ──────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 }
 function fmt(s) {
-  var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  var m = Math.floor(s/60), sec = Math.floor(s%60);
   return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
 }
 function escHtml(s) {
@@ -347,21 +340,61 @@ function updateTag() {
   document.getElementById('counter-tag').textContent = String(count).padStart(2,'0');
 }
 function loadCount() {
-  var v = storeGet('regret-count');
-  count = v ? parseInt(v) || 1 : 1;
+  try { var v = localStorage.getItem('regret-count'); count = v ? parseInt(v)||1 : 1; } catch(e) {}
   updateTag();
 }
-function saveCount() { storeSave('regret-count', String(count)); }
+function saveCount() {
+  try { localStorage.setItem('regret-count', String(count)); } catch(e) {}
+}
 function endExperience() {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   show('s1');
 }
 
-// ── Microphone flow ────────────────────────────────────────────────────────
-// Tapping Record: try to get mic immediately.
-// - If the browser prompts → user sees native dialog, we proceed with real audio.
-// - If blocked (sandboxed iframe, denied) → fall back to sim mode silently.
-// The in-app permission screen (sp) is shown as a friendly intermediary first.
+// ── Shared backend (JSONBin) ───────────────────────────────────
+// Fetches all confessions from the shared bin
+function fetchConfessions() {
+  if (!USING_SHARED_BACKEND) return Promise.resolve([]);
+  return fetch(JSONBIN_URL + '/latest', {
+    headers: {
+      'X-Master-Key': JSONBIN_API_KEY,
+      'X-Bin-Meta': 'false'
+    }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    // JSONBin wraps the data in { record: { confessions: [...] } }
+    if (data && data.record && Array.isArray(data.record.confessions)) {
+      return data.record.confessions;
+    }
+    return [];
+  })
+  .catch(function(){ return []; });
+}
+
+// Appends a new confession to the shared bin
+function pushConfession(newEntry) {
+  if (!USING_SHARED_BACKEND) return Promise.resolve();
+  return fetchConfessions().then(function(list) {
+    // Keep only text confessions in the shared bin (audio base64 is too large for JSONBin free tier)
+    var entry = newEntry.type === 'audio'
+      ? { type: 'text', text: '[voice confession — audio not stored in shared archive]' }
+      : newEntry;
+    var updated = list.concat([entry]);
+    // Trim to last 200 confessions so the bin doesn't bloat
+    if (updated.length > 200) updated = updated.slice(-200);
+    return fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify({ confessions: updated })
+    });
+  }).catch(function(){});
+}
+
+// ── Microphone flow ────────────────────────────────────────────
 function onTapRecord() {
   if (micGranted) { show('s2'); return; }
   show('sp');
@@ -375,44 +408,35 @@ function requestMic() {
   btn.disabled = true;
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    // Environment doesn't support mic at all → sim mode
     simMode = true; micGranted = true;
+    btn.textContent = 'allow microphone'; btn.disabled = false;
     initVMBars(); show('s2');
     return;
   }
 
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(function(stream) {
-      micStream = stream;
-      micGranted = true;
-      simMode = false;
-      setupAudio(stream);
-      initVMBars();
-      show('s2');
-      btn.textContent = 'allow microphone';
-      btn.disabled = false;
+      micStream = stream; micGranted = true; simMode = false;
+      setupAudio(stream); initVMBars(); show('s2');
+      btn.textContent = 'allow microphone'; btn.disabled = false;
     })
-    .catch(function(err) {
-      // Denied or blocked → fall back to sim, still let them "record"
-      simMode = true;
-      micGranted = true;
-      errEl.textContent = 'Microphone unavailable — using silent mode.';
-      setTimeout(function(){ initVMBars(); show('s2'); }, 800);
-      btn.textContent = 'allow microphone';
-      btn.disabled = false;
+    .catch(function() {
+      simMode = true; micGranted = true;
+      errEl.textContent = 'Microphone unavailable — continuing without audio.';
+      btn.textContent = 'allow microphone'; btn.disabled = false;
+      setTimeout(function(){ initVMBars(); show('s2'); }, 900);
     });
 }
 
 function setupAudio(stream) {
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
     audioCtx.createMediaStreamSource(stream).connect(analyser);
   } catch(e) { analyser = null; }
 }
 
-// ── Waveform bars ──────────────────────────────────────────────────────────
+// ── Waveform bars ──────────────────────────────────────────────
 function initVMBars() {
   var c = document.getElementById('vm-bars');
   c.innerHTML = ''; vmBarEls = []; vmTargets = [];
@@ -473,25 +497,24 @@ function simLoop() {
   animFrame = requestAnimationFrame(simLoop);
 }
 
-// ── Playback panel ─────────────────────────────────────────────────────────
+// ── Playback panel ─────────────────────────────────────────────
 function buildPbWaveform() {
   var wf = document.getElementById('pb-waveform');
   wf.innerHTML = ''; pbBars = [];
   for (var i = 0; i < 60; i++) {
     var d = document.createElement('div'); d.className = 'pb-wbar';
-    var c = 1 - Math.abs(i - 30) / 30 * 0.5;
+    var c = 1 - Math.abs(i-30)/30*0.5;
     var h = 4 + Math.random()*22*c + c*6;
     d.style.height = h.toFixed(1) + 'px';
     d.style.background = 'rgba(160,80,40,0.35)';
-    wf.appendChild(d); pbBars.push({ el: d, h: h });
+    wf.appendChild(d); pbBars.push({el:d, h:h});
   }
 }
 
 function showPlaybackPanel(blob) {
-  // Revoke any old object URL
   if (pbURL) { URL.revokeObjectURL(pbURL); pbURL = null; }
   pbBlob = blob;
-  if (blob) { pbURL = URL.createObjectURL(blob); }
+  if (blob) pbURL = URL.createObjectURL(blob);
   buildPbWaveform();
   document.getElementById('pb-total').textContent = fmt(secs);
   document.getElementById('pb-elapsed').textContent = '00:00';
@@ -504,41 +527,28 @@ function updatePbProgress() {
   if (!pbAudio || !pbBars.length) return;
   var pct = pbAudio.duration ? pbAudio.currentTime / pbAudio.duration : 0;
   var filled = Math.floor(pct * pbBars.length);
-  pbBars.forEach(function(b, i) {
-    b.el.style.background = i < filled ? 'rgba(200,88,40,0.85)' : 'rgba(160,80,40,0.35)';
-  });
-  document.getElementById('pb-elapsed').textContent = fmt(pbAudio.currentTime || 0);
-  document.getElementById('pb-total').textContent = fmt(pbAudio.duration || secs || 0);
+  pbBars.forEach(function(b,i){ b.el.style.background = i < filled ? 'rgba(200,88,40,0.85)' : 'rgba(160,80,40,0.35)'; });
+  document.getElementById('pb-elapsed').textContent = fmt(pbAudio.currentTime||0);
+  document.getElementById('pb-total').textContent = fmt(pbAudio.duration||secs||0);
   if (pbIsPlaying) pbRaf = requestAnimationFrame(updatePbProgress);
 }
 
 function togglePlayback() {
   if (pbIsPlaying) {
-    pbIsPlaying = false;
-    if (pbAudio) pbAudio.pause();
-    if (pbRaf) cancelAnimationFrame(pbRaf);
-    setPbIcon(false);
-    document.getElementById('pb-btn').classList.remove('playing');
-    return;
+    pbIsPlaying = false; if (pbAudio) pbAudio.pause(); if (pbRaf) cancelAnimationFrame(pbRaf);
+    setPbIcon(false); document.getElementById('pb-btn').classList.remove('playing'); return;
   }
-  // Need a real blob URL to play back
   if (!pbURL) return;
   if (!pbAudio) {
     pbAudio = new Audio(pbURL);
     pbAudio.onended = function() {
-      pbIsPlaying = false;
-      if (pbRaf) cancelAnimationFrame(pbRaf);
-      setPbIcon(false);
-      document.getElementById('pb-btn').classList.remove('playing');
+      pbIsPlaying = false; if (pbRaf) cancelAnimationFrame(pbRaf);
+      setPbIcon(false); document.getElementById('pb-btn').classList.remove('playing');
       pbBars.forEach(function(b){ b.el.style.background = 'rgba(160,80,40,0.35)'; });
       document.getElementById('pb-elapsed').textContent = '00:00';
     };
-  } else {
-    pbAudio.currentTime = 0;
-  }
-  pbIsPlaying = true;
-  pbAudio.play();
-  setPbIcon(true);
+  } else { pbAudio.currentTime = 0; }
+  pbIsPlaying = true; pbAudio.play(); setPbIcon(true);
   document.getElementById('pb-btn').classList.add('playing');
   pbRaf = requestAnimationFrame(updatePbProgress);
 }
@@ -546,7 +556,7 @@ function togglePlayback() {
 function seekPlayback(e) {
   if (!pbAudio || !pbAudio.duration) return;
   var rect = e.currentTarget.getBoundingClientRect();
-  pbAudio.currentTime = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * pbAudio.duration;
+  pbAudio.currentTime = Math.max(0, Math.min(1, (e.clientX-rect.left)/rect.width)) * pbAudio.duration;
   if (!pbIsPlaying) updatePbProgress();
 }
 
@@ -561,15 +571,13 @@ function hidePlaybackPanel() {
   document.getElementById('rerecord-btn').classList.remove('visible');
   if (pbAudio) { pbAudio.pause(); pbAudio = null; }
   if (pbRaf) cancelAnimationFrame(pbRaf);
-  pbIsPlaying = false;
-  pbBlob = null;
-  // Keep pbURL alive until next recording so submitted audio can still be saved
-  pbBars = [];
+  pbIsPlaying = false; pbBars = [];
 }
 
 function reRecord() {
   hidePlaybackPanel();
   if (pbURL) { URL.revokeObjectURL(pbURL); pbURL = null; }
+  pbBlob = null;
   document.getElementById('rsub').disabled = true;
   document.getElementById('rec-status-txt').textContent = 'press to begin';
   document.getElementById('rtimer').textContent = '—';
@@ -577,7 +585,7 @@ function reRecord() {
   startIdleAnimation();
 }
 
-// ── Recording controls ─────────────────────────────────────────────────────
+// ── Recording controls ─────────────────────────────────────────
 function toggleRec() { recOn ? stopRecording() : startRecording(); }
 
 function startRecording() {
@@ -587,24 +595,15 @@ function startRecording() {
 
   if (!simMode && micStream) {
     try {
-      // Prefer formats with broad support
       var mimeType = '';
-      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-        mimeType = 'audio/webm;codecs=opus';
-      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
-        mimeType = 'audio/webm';
-      } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-        mimeType = 'audio/ogg;codecs=opus';
-      }
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
+      else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+      else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) mimeType = 'audio/ogg;codecs=opus';
       var opts = mimeType ? { mimeType: mimeType } : {};
       mediaRecorder = new MediaRecorder(micStream, opts);
-      mediaRecorder.ondataavailable = function(e) {
-        if (e.data && e.data.size > 0) audioChunks.push(e.data);
-      };
-      mediaRecorder.start(100); // collect every 100ms
-    } catch(e) {
-      simMode = true; // fallback if MediaRecorder fails
-    }
+      mediaRecorder.ondataavailable = function(e) { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.start(100);
+    } catch(e) { simMode = true; }
   }
 
   recOn = true; secs = 0;
@@ -615,16 +614,14 @@ function startRecording() {
   document.getElementById('rec-status-txt').textContent = simMode ? 'recording (no mic)' : 'recording';
   document.getElementById('rtimer').textContent = '00:00';
   document.getElementById('rsub').disabled = true;
-  tiInt = setInterval(function() { secs++; document.getElementById('rtimer').textContent = fmt(secs); }, 1000);
+  tiInt = setInterval(function(){ secs++; document.getElementById('rtimer').textContent = fmt(secs); }, 1000);
   setRecIcon(true);
   simMode ? simLoop() : recordLoop();
 }
 
 function stopRecording() {
-  recOn = false;
-  clearInterval(tiInt);
+  recOn = false; clearInterval(tiInt);
   if (animFrame) cancelAnimationFrame(animFrame);
-
   document.getElementById('rbtn').classList.remove('on');
   document.getElementById('reddot').classList.remove('on');
   document.getElementById('rec-status-txt').textContent = 'recording complete';
@@ -633,22 +630,15 @@ function stopRecording() {
 
   if (!simMode && mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.onstop = function() {
-      if (audioChunks.length > 0) {
-        var mimeType = mediaRecorder.mimeType || 'audio/webm';
-        var blob = new Blob(audioChunks, { type: mimeType });
-        showPlaybackPanel(blob);
-      } else {
-        // No data collected — fall back gracefully
-        showPlaybackPanel(null);
-      }
+      var blob = audioChunks.length > 0 ? new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' }) : null;
+      showPlaybackPanel(blob);
     };
     mediaRecorder.stop();
   } else {
-    // Sim mode — no real audio but still show the panel so UX flows
     showPlaybackPanel(null);
   }
 
-  setTimeout(function() {
+  setTimeout(function(){
     document.getElementById('voicememo-wrap').className = 'voicememo-wrap';
     startIdleAnimation();
   }, 1800);
@@ -662,46 +652,30 @@ function setRecIcon(isRec) {
 
 function stopAndBack() { if (recOn) stopRecording(); show('s1'); }
 
-// ── Text input ─────────────────────────────────────────────────────────────
 function onWrite() {
   var v = document.getElementById('wtxt').value;
   document.getElementById('wct').textContent = v.length + ' characters';
   document.getElementById('wsub').disabled = v.length < 4;
 }
 
-// ── Save confessions ───────────────────────────────────────────────────────
-function saveConfession(data) {
-  storeSave('confession-' + count, JSON.stringify(data));
-}
-
-function blobToBase64(blob) {
-  return new Promise(function(resolve) {
-    var reader = new FileReader();
-    reader.onloadend = function() { resolve(reader.result); };
-    reader.readAsDataURL(blob);
-  });
-}
-
-// ── Submit ─────────────────────────────────────────────────────────────────
+// ── Submit ─────────────────────────────────────────────────────
 function submitText() {
   var txt = document.getElementById('wtxt').value.trim();
   if (!txt) return;
+  var entry = { type: 'text', text: txt };
   document.getElementById('wtxt').value = '';
   document.getElementById('wct').textContent = '0 characters';
   document.getElementById('wsub').disabled = true;
-  count++; saveCount();
-  saveConfession({ type: 'text', text: txt });
-  updateTag();
+  count++; saveCount(); updateTag();
   document.getElementById('conf-count').textContent = 'confession ' + String(count).padStart(2,'0');
   show('s4'); startGalaxy();
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  pushConfession(entry);
 }
 
 function submitAudio() {
-  var recordedBlob = pbBlob; // capture before hidePlaybackPanel clears it
-  var recordedURL = pbURL;
+  var recordedBlob = pbBlob;
   var recordedSecs = secs;
-
   hidePlaybackPanel();
   count++; saveCount(); updateTag();
   document.getElementById('conf-count').textContent = 'confession ' + String(count).padStart(2,'0');
@@ -709,62 +683,54 @@ function submitAudio() {
   document.getElementById('rtimer').textContent = '—';
   document.getElementById('rec-status-txt').textContent = 'press to begin';
   document.getElementById('voicememo-wrap').className = 'voicememo-wrap';
-  startIdleAnimation();
-  show('s4'); startGalaxy();
+  startIdleAnimation(); show('s4'); startGalaxy();
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 
-  // Persist the recording if we have real audio
   if (recordedBlob) {
-    blobToBase64(recordedBlob).then(function(b64) {
-      saveConfession({ type: 'audio', data: b64, duration: recordedSecs });
-      if (recordedURL) { URL.revokeObjectURL(recordedURL); }
-    });
+    var entry = { type: 'text', text: '[voice confession — ' + fmt(recordedSecs) + ']' };
+    pushConfession(entry);
+    if (pbURL) { URL.revokeObjectURL(pbURL); pbURL = null; }
   } else {
-    saveConfession({ type: 'text', text: '[voice confession]' });
+    pushConfession({ type: 'text', text: '[voice confession]' });
   }
 }
 
-// ── Listen screen ──────────────────────────────────────────────────────────
+// ── Listen screen ──────────────────────────────────────────────
 function openRandomConfession() {
   show('s5');
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-  document.getElementById('confession-card').innerHTML = '<div class="written-text loading">searching the archive…</div>';
+  var card = document.getElementById('confession-card');
+  card.innerHTML = '<div class="written-text loading">searching the archive…</div>';
   document.getElementById('listen-num').textContent = '';
 
-  var keys = storeKeys('confession-');
-  var chosen = null;
-  if (keys.length > 0) {
-    var pick = keys[Math.floor(Math.random() * keys.length)];
-    try { var raw = storeGet(pick); if (raw) chosen = JSON.parse(raw); } catch(e) {}
-  }
-  if (!chosen) chosen = seedConfessions[Math.floor(Math.random() * seedConfessions.length)];
-  var num = keys.length > 0 ? keys.length : seedConfessions.length;
-  document.getElementById('listen-num').textContent = 'from ' + num + ' confession' + (num === 1 ? '' : 's') + ' in the archive';
+  fetchConfessions().then(function(list) {
+    var chosen = null;
+    if (list.length > 0) {
+      chosen = list[Math.floor(Math.random() * list.length)];
+    } else {
+      chosen = seedConfessions[Math.floor(Math.random() * seedConfessions.length)];
+    }
+    var num = list.length > 0 ? list.length : seedConfessions.length;
+    document.getElementById('listen-num').textContent =
+      'from ' + num + ' confession' + (num === 1 ? '' : 's') + ' in the archive';
 
-  if (chosen.type === 'text') {
-    document.getElementById('confession-card').innerHTML = '<div class="written-text">' + escHtml(chosen.text) + '</div>';
-  } else if (chosen.type === 'audio') {
-    renderAudioPlayer(chosen);
-  }
+    if (chosen.type === 'text') {
+      card.innerHTML = '<div class="written-text">' + escHtml(chosen.text) + '</div>';
+    } else if (chosen.type === 'audio') {
+      renderAudioPlayer(chosen);
+    }
+  });
 }
 
 function renderAudioPlayer(conf) {
   var card = document.getElementById('confession-card');
   var dur = conf.duration || 0;
-  var bars = Array.from({length:40}, function() {
-    var h = 8 + Math.floor(Math.random() * 22);
-    return '<div class="aw-bar" style="height:' + h + 'px"></div>';
-  }).join('');
-  card.innerHTML = '<div class="audio-card">'
-    + '<div class="audio-label">voice confession</div>'
-    + '<div class="play-row">'
-    + '<div class="play-btn" id="play-btn" onclick="toggleArchiveAudio(\'' + escHtml(conf.data) + '\',' + dur + ')">'
+  var bars = Array.from({length:40}, function(){ var h=8+Math.floor(Math.random()*22); return '<div class="aw-bar" style="height:'+h+'px"></div>'; }).join('');
+  card.innerHTML = '<div class="audio-card"><div class="audio-label">voice confession</div>'
+    + '<div class="play-row"><div class="play-btn" id="play-btn" onclick="toggleArchiveAudio(\'' + escHtml(conf.data) + '\',' + dur + ')">'
     + '<svg id="play-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="6,4 16,10 6,16" fill="rgba(255,200,150,0.85)"/></svg>'
-    + '</div>'
-    + '<div class="audio-waveform">' + bars + '</div>'
-    + '</div>'
-    + '<div class="audio-timer" id="audio-timer">00:00 / ' + fmt(dur) + '</div>'
-    + '</div>';
+    + '</div><div class="audio-waveform">' + bars + '</div></div>'
+    + '<div class="audio-timer" id="audio-timer">00:00 / ' + fmt(dur) + '</div></div>';
 }
 
 function toggleArchiveAudio(src, dur) {
@@ -776,8 +742,7 @@ function toggleArchiveAudio(src, dur) {
   }
   if (!currentAudio || currentAudio._src !== src) {
     if (currentAudio) currentAudio.pause();
-    currentAudio = new Audio(src);
-    currentAudio._src = src;
+    currentAudio = new Audio(src); currentAudio._src = src;
     currentAudio.ontimeupdate = function() {
       var el = document.getElementById('audio-timer');
       if (!el) return;
@@ -793,69 +758,30 @@ function toggleArchiveAudio(src, dur) {
   if (ic) ic.innerHTML = '<rect x="5" y="4" width="4" height="12" fill="rgba(255,200,150,0.85)"/><rect x="11" y="4" width="4" height="12" fill="rgba(255,200,150,0.85)"/>';
 }
 
-// ── Galaxy animation ───────────────────────────────────────────────────────
+// ── Galaxy ─────────────────────────────────────────────────────
 function startGalaxy() {
   if (galaxyRaf) { cancelAnimationFrame(galaxyRaf); galaxyRaf = null; }
-  var cv = document.getElementById('galaxy');
-  var wrap = cv.parentElement;
-  var W = wrap.clientWidth || 390, H = wrap.clientHeight || 340;
+  var cv = document.getElementById('galaxy'), wrap = cv.parentElement;
+  var W = wrap.clientWidth||390, H = wrap.clientHeight||340;
   cv.width = W; cv.height = H;
-  var ctx = cv.getContext('2d');
-  var cx = W/2, cy = H*0.55;
-  var stars = Array.from({length:120}, function() {
-    return {x:Math.random()*W,y:Math.random()*H,r:0.3+Math.random()*0.9,a:0.1+Math.random()*0.5,ts:0.005+Math.random()*0.015,to:Math.random()*Math.PI*2};
-  });
-  var nebulae = [
-    {x:cx-40,y:cy-30,rx:90,ry:55,r1:'rgba(180,80,30,',r2:'rgba(120,40,60,',a:0.13,dx:0.06,dy:-0.03,t:0},
-    {x:cx+50,y:cy-60,rx:70,ry:40,r1:'rgba(100,50,150,',r2:'rgba(60,80,180,',a:0.1,dx:-0.05,dy:0.04,t:1.5},
-    {x:cx-20,y:cy+20,rx:110,ry:60,r1:'rgba(200,100,20,',r2:'rgba(150,60,30,',a:0.08,dx:0.03,dy:-0.05,t:3},
-    {x:cx+30,y:cy-10,rx:50,ry:80,r1:'rgba(80,40,120,',r2:'rgba(140,60,100,',a:0.09,dx:-0.04,dy:0.03,t:0.8}
-  ];
-  var particles = Array.from({length:80}, function() {
-    var a=Math.random()*Math.PI*2,sp=0.12+Math.random()*0.35,sr=5+Math.random()*30;
-    return {x:cx+Math.cos(a)*sr,y:cy+Math.sin(a)*sr,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:0.4+Math.random()*1.8,life:0.6+Math.random()*0.4,decay:0.0015+Math.random()*0.003,color:Math.random()<0.6?'255,200,160':'200,160,255'};
-  });
-  var filaments = Array.from({length:18}, function() {
-    var a=Math.random()*Math.PI*2,len=30+Math.random()*80;
-    return {x1:cx+Math.cos(a)*(10+Math.random()*20),y1:cy+Math.sin(a)*(10+Math.random()*20),x2:cx+Math.cos(a)*len,y2:cy+Math.sin(a)*len,cpx:cx+Math.cos(a+0.6)*(len*0.5),cpy:cy+Math.sin(a+0.6)*(len*0.5),life:0.3+Math.random()*0.4,decay:0.001+Math.random()*0.002,hue:Math.random()<0.5?'255,160,80':'180,120,255'};
-  });
+  var ctx = cv.getContext('2d'), cx = W/2, cy = H*0.55;
+  var stars = Array.from({length:120}, function(){ return {x:Math.random()*W,y:Math.random()*H,r:0.3+Math.random()*0.9,a:0.1+Math.random()*0.5,ts:0.005+Math.random()*0.015,to:Math.random()*Math.PI*2}; });
+  var nebulae = [{x:cx-40,y:cy-30,rx:90,ry:55,r1:'rgba(180,80,30,',r2:'rgba(120,40,60,',a:0.13,dx:0.06,dy:-0.03,t:0},{x:cx+50,y:cy-60,rx:70,ry:40,r1:'rgba(100,50,150,',r2:'rgba(60,80,180,',a:0.1,dx:-0.05,dy:0.04,t:1.5},{x:cx-20,y:cy+20,rx:110,ry:60,r1:'rgba(200,100,20,',r2:'rgba(150,60,30,',a:0.08,dx:0.03,dy:-0.05,t:3},{x:cx+30,y:cy-10,rx:50,ry:80,r1:'rgba(80,40,120,',r2:'rgba(140,60,100,',a:0.09,dx:-0.04,dy:0.03,t:0.8}];
+  var particles = Array.from({length:80}, function(){ var a=Math.random()*Math.PI*2,sp=0.12+Math.random()*0.35,sr=5+Math.random()*30; return {x:cx+Math.cos(a)*sr,y:cy+Math.sin(a)*sr,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:0.4+Math.random()*1.8,life:0.6+Math.random()*0.4,decay:0.0015+Math.random()*0.003,color:Math.random()<0.6?'255,200,160':'200,160,255'}; });
+  var filaments = Array.from({length:18}, function(){ var a=Math.random()*Math.PI*2,len=30+Math.random()*80; return {x1:cx+Math.cos(a)*(10+Math.random()*20),y1:cy+Math.sin(a)*(10+Math.random()*20),x2:cx+Math.cos(a)*len,y2:cy+Math.sin(a)*len,cpx:cx+Math.cos(a+0.6)*(len*0.5),cpy:cy+Math.sin(a+0.6)*(len*0.5),life:0.3+Math.random()*0.4,decay:0.001+Math.random()*0.002,hue:Math.random()<0.5?'255,160,80':'180,120,255'}; });
   var t = 0;
   function draw() {
     ctx.clearRect(0,0,W,H);
-    stars.forEach(function(s) {
-      var tw = s.a*(0.5+0.5*Math.sin(t*s.ts+s.to));
-      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle = 'rgba(255,240,220,'+tw+')'; ctx.fill();
-    });
-    nebulae.forEach(function(n) {
-      n.x+=n.dx; n.y+=n.dy;
-      var gx=n.x+Math.sin(t*0.008+n.t)*8, gy=n.y+Math.cos(t*0.006+n.t)*5;
-      var g=ctx.createRadialGradient(gx,gy,0,gx,gy,n.rx);
-      g.addColorStop(0,n.r1+n.a+')'); g.addColorStop(0.5,n.r2+(n.a*0.5)+')'); g.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.save(); ctx.translate(gx,gy); ctx.scale(1,n.ry/n.rx); ctx.translate(-gx,-gy);
-      ctx.beginPath(); ctx.arc(gx,gy,n.rx,0,Math.PI*2); ctx.fillStyle=g; ctx.fill(); ctx.restore();
-    });
-    filaments.forEach(function(f) {
-      if(f.life<=0)return;
-      ctx.beginPath(); ctx.moveTo(f.x1,f.y1); ctx.quadraticCurveTo(f.cpx,f.cpy,f.x2,f.y2);
-      ctx.strokeStyle='rgba('+f.hue+','+f.life*0.6+')'; ctx.lineWidth=0.5; ctx.stroke();
-      f.x2+=((f.x2-cx)*0.005); f.y2+=((f.y2-cy)*0.005); f.life-=f.decay;
-    });
-    particles.forEach(function(p) {
-      if(p.life<=0)return;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle='rgba('+p.color+','+p.life+')'; ctx.fill();
-      p.x+=p.vx; p.y+=p.vy; p.life-=p.decay; p.vx*=0.998; p.vy*=0.998;
-    });
-    var core=ctx.createRadialGradient(cx,cy,0,cx,cy,40);
-    core.addColorStop(0,'rgba(220,130,60,0.18)'); core.addColorStop(0.4,'rgba(180,80,40,0.08)'); core.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.beginPath(); ctx.arc(cx,cy,40,0,Math.PI*2); ctx.fillStyle=core; ctx.fill();
+    stars.forEach(function(s){ var tw=s.a*(0.5+0.5*Math.sin(t*s.ts+s.to)); ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle='rgba(255,240,220,'+tw+')'; ctx.fill(); });
+    nebulae.forEach(function(n){ n.x+=n.dx; n.y+=n.dy; var gx=n.x+Math.sin(t*0.008+n.t)*8,gy=n.y+Math.cos(t*0.006+n.t)*5; var g=ctx.createRadialGradient(gx,gy,0,gx,gy,n.rx); g.addColorStop(0,n.r1+n.a+')'); g.addColorStop(0.5,n.r2+(n.a*0.5)+')'); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.save(); ctx.translate(gx,gy); ctx.scale(1,n.ry/n.rx); ctx.translate(-gx,-gy); ctx.beginPath(); ctx.arc(gx,gy,n.rx,0,Math.PI*2); ctx.fillStyle=g; ctx.fill(); ctx.restore(); });
+    filaments.forEach(function(f){ if(f.life<=0)return; ctx.beginPath(); ctx.moveTo(f.x1,f.y1); ctx.quadraticCurveTo(f.cpx,f.cpy,f.x2,f.y2); ctx.strokeStyle='rgba('+f.hue+','+f.life*0.6+')'; ctx.lineWidth=0.5; ctx.stroke(); f.x2+=((f.x2-cx)*0.005); f.y2+=((f.y2-cy)*0.005); f.life-=f.decay; });
+    particles.forEach(function(p){ if(p.life<=0)return; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle='rgba('+p.color+','+p.life+')'; ctx.fill(); p.x+=p.vx; p.y+=p.vy; p.life-=p.decay; p.vx*=0.998; p.vy*=0.998; });
+    var core=ctx.createRadialGradient(cx,cy,0,cx,cy,40); core.addColorStop(0,'rgba(220,130,60,0.18)'); core.addColorStop(0.4,'rgba(180,80,40,0.08)'); core.addColorStop(1,'rgba(0,0,0,0)'); ctx.beginPath(); ctx.arc(cx,cy,40,0,Math.PI*2); ctx.fillStyle=core; ctx.fill();
     t++; galaxyRaf = requestAnimationFrame(draw);
   }
   draw();
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────
 loadCount();
 </script>
 </body>
