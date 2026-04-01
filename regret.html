@@ -10,10 +10,9 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;background:#111;}
-body{display:flex;justify-content:center;align-items:flex-start;min-height:100%;overflow-x:hidden;}
-.wrap{display:flex;justify-content:center;align-items:center;padding:20px;width:100%;min-height:100vh;}
-.phone{width:390px;height:780px;border-radius:50px;overflow:hidden;position:relative;background:#1a1008;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;box-shadow:0 40px 120px rgba(0,0,0,0.6);flex-shrink:0;}
-@media(max-width:440px){.phone{width:100%;max-width:390px;border-radius:32px;}}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;}
+.wrap{display:flex;justify-content:center;padding:24px 0 32px;}
+.phone{width:390px;height:780px;border-radius:50px;overflow:hidden;position:relative;background:#1a1008;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;box-shadow:0 40px 120px rgba(0,0,0,0.6);}
 .bg-glow{position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 280px 340px at 50% -20px,#c8622a 0%,#a04820 30%,transparent 70%),radial-gradient(ellipse 320px 200px at 50% 60%,#8a3818 0%,transparent 60%),radial-gradient(ellipse 200px 180px at 20% 85%,#6b2a14 0%,transparent 60%),radial-gradient(ellipse 180px 160px at 80% 75%,#5a1e0e 0%,transparent 60%);}
 .noise{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0.55;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");}
 .screen{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
@@ -51,7 +50,7 @@ body{display:flex;justify-content:center;align-items:flex-start;min-height:100%;
 .rtimer{font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:300;color:rgba(255,255,255,0.25);letter-spacing:0.12em;min-height:20px;}
 .voicememo-wrap{width:100%;height:80px;position:relative;margin:28px 0;display:flex;align-items:center;justify-content:center;}
 .voicememo-bars{display:flex;align-items:center;justify-content:center;gap:2.5px;height:100%;width:100%;}
-.vm-bar{width:3px;border-radius:2px;background:rgba(120,70,30,0.3);transition:height 0.08s ease,background 0.3s ease;flex-shrink:0;}
+.vm-bar{width:3px;border-radius:2px;background:rgba(120,70,30,0.3);transition:background 0.3s ease;flex-shrink:0;}
 .voicememo-wrap.recording .vm-bar{background:rgba(200,88,40,0.85);}
 .voicememo-wrap.done .vm-bar{background:rgba(160,80,40,0.55);}
 .rec-status{display:flex;align-items:center;gap:10px;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,0.3);letter-spacing:0.08em;min-height:20px;margin-bottom:8px;}
@@ -118,6 +117,7 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
   <div class="bg-glow"></div>
   <div class="noise"></div>
 
+  <!-- S1: Home -->
   <div class="screen active" id="s1">
     <div class="s1-top">
       <div class="s1-tag">Confession / <span id="counter-tag">01</span></div>
@@ -157,6 +157,7 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
     </div>
   </div>
 
+  <!-- SP: Mic permission -->
   <div class="screen" id="sp">
     <div class="perm-inner">
       <div class="perm-icon-wrap">
@@ -170,12 +171,13 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
       </div>
       <div class="perm-title">To confess,<br>we need your voice</div>
       <div class="perm-sub">Your recording stays <em>within this space</em>.<br>It will never be shared without your consent.<br>This is a place to speak freely.</div>
-      <button class="allow-btn" onclick="requestMic()">allow microphone</button>
+      <button class="allow-btn" id="allow-btn" onclick="requestMic()">allow microphone</button>
       <button class="deny-btn" onclick="show('s1')">not now — go back</button>
       <div class="perm-err" id="perm-err"></div>
     </div>
   </div>
 
+  <!-- S2: Record -->
   <div class="screen" id="s2">
     <div class="s2-inner">
       <button class="back" onclick="stopAndBack()">← back</button>
@@ -223,6 +225,7 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
     </div>
   </div>
 
+  <!-- S3: Write -->
   <div class="screen" id="s3">
     <div class="s3-inner">
       <button class="back" onclick="show('s1')">← back</button>
@@ -237,6 +240,7 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
     </div>
   </div>
 
+  <!-- S4: Released -->
   <div class="screen" id="s4">
     <div class="s4-inner">
       <div class="galaxy-wrap"><canvas id="galaxy"></canvas></div>
@@ -249,6 +253,7 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
     </div>
   </div>
 
+  <!-- S5: Listen -->
   <div class="screen" id="s5">
     <div class="s5-inner">
       <button class="back" onclick="show('s4')">← back</button>
@@ -260,217 +265,597 @@ canvas#galaxy{position:absolute;inset:0;width:100%;height:100%;}
       <button class="end-pill" onclick="endExperience()">end experience</button>
     </div>
   </div>
-</div>
-</div>
+
+</div><!-- .phone -->
+</div><!-- .wrap -->
 
 <script>
-var count=1,recOn=false,recDone=false,tiInt=null,secs=0;
-var mediaRecorder=null,audioChunks=[],audioCtx=null,analyser=null,micStream=null,animFrame=null;
-var micGranted=false,simMode=false;
-var galaxyRaf=null,currentAudio=null;
-var NUM_BARS=52,vmBarEls=[],idleRaf=null,vmTargets=[];
-var pbAudio=null,pbBlob=null,pbBars=[],pbRaf=null,pbIsPlaying=false;
+// ── State ──────────────────────────────────────────────────────────────────
+var count = 1;
+var recOn = false;
+var tiInt = null;
+var secs = 0;
+var micGranted = false;
+var simMode = false;
+var galaxyRaf = null;
+var currentAudio = null;
 
-var seedConfessions=[
-  {type:'text',text:'I never told my father I was proud of him. He died thinking I was indifferent.'},
-  {type:'text',text:'I left a city I loved because I was afraid of what staying would mean.'},
-  {type:'text',text:'I let a friendship dissolve because apologising felt harder than losing her.'},
-  {type:'text',text:'I chose safety over the thing I actually wanted, and I have not stopped wondering.'},
-  {type:'text',text:'I said something cruel when I was twenty-two. The person forgave me. I never forgave myself.'},
+// Recording internals
+var mediaRecorder = null;
+var audioChunks = [];
+var micStream = null;
+var audioCtx = null;
+var analyser = null;
+var animFrame = null;
+
+// Waveform bars
+var NUM_BARS = 52;
+var vmBarEls = [];
+var idleRaf = null;
+var vmTargets = [];
+
+// Playback panel
+var pbBlob = null;      // the actual recorded Blob
+var pbURL = null;       // object URL for the blob
+var pbAudio = null;     // Audio element for playback
+var pbBars = [];
+var pbRaf = null;
+var pbIsPlaying = false;
+
+// In-memory confession store + localStorage fallback
+var memStore = {};
+function storeSave(k, v) {
+  memStore[k] = v;
+  try { localStorage.setItem(k, v); } catch(e) {}
+}
+function storeGet(k) {
+  if (memStore[k] !== undefined) return memStore[k];
+  try { return localStorage.getItem(k); } catch(e) { return null; }
+}
+function storeKeys(prefix) {
+  var keys = Object.keys(memStore).filter(function(k){ return k.indexOf(prefix) === 0; });
+  try {
+    Object.keys(localStorage).forEach(function(k){
+      if (k.indexOf(prefix) === 0 && keys.indexOf(k) === -1) keys.push(k);
+    });
+  } catch(e) {}
+  return keys;
+}
+
+// Seed confessions shown when no user ones exist
+var seedConfessions = [
+  {type:'text', text:'I never told my father I was proud of him. He died thinking I was indifferent.'},
+  {type:'text', text:'I left a city I loved because I was afraid of what staying would mean.'},
+  {type:'text', text:'I let a friendship dissolve because apologising felt harder than losing her.'},
+  {type:'text', text:'I chose safety over the thing I actually wanted, and I have not stopped wondering.'},
+  {type:'text', text:'I said something cruel when I was twenty-two. The person forgave me. I never forgave myself.'},
 ];
 
-// Pure in-memory store — always works, no external deps
-var memStore={};
-var store={
-  get:function(k){return Promise.resolve(memStore[k]?{value:memStore[k]}:null);},
-  set:function(k,v){memStore[k]=v;return Promise.resolve();},
-  list:function(prefix){var keys=Object.keys(memStore).filter(function(k){return k.indexOf(prefix)===0;});return Promise.resolve({keys:keys});}
-};
-// Attempt to also persist to localStorage without blocking
-function lsPersist(k,v){try{localStorage.setItem(k,v);}catch(e){}}
-function lsLoad(k){try{return localStorage.getItem(k);}catch(e){return null;}}
-
-function loadCount(){
-  var v=lsLoad('regret-count');
-  count=v?parseInt(v)||1:1;
-  memStore['regret-count']=String(count);
+// ── Utilities ──────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+function fmt(s) {
+  var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function updateTag() {
+  document.getElementById('counter-tag').textContent = String(count).padStart(2,'0');
+}
+function loadCount() {
+  var v = storeGet('regret-count');
+  count = v ? parseInt(v) || 1 : 1;
   updateTag();
 }
-function saveCount(){memStore['regret-count']=String(count);lsPersist('regret-count',String(count));}
-function updateTag(){document.getElementById('counter-tag').textContent=String(count).padStart(2,'0');}
-function show(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById(id).classList.add('active');}
-function fmt(s){var m=Math.floor(s/60),sec=Math.floor(s%60);return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function onTapRecord(){
-  if(micGranted){ show('s2'); return; }
-  // Silently probe whether mic is accessible at all before showing the permission screen.
-  // In sandboxed iframes (published artifacts), getUserMedia rejects instantly with
-  // NotAllowedError or NotSupportedError — we catch that and go straight to sim mode.
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    simMode=true; micGranted=true; initVMBars(); show('s2'); return;
-  }
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-    micStream=stream; micGranted=true; simMode=false; setupAudio(stream); initVMBars(); show('s2');
-  }).catch(function(){
-    simMode=true; micGranted=true; initVMBars(); show('s2');
-  });
+function saveCount() { storeSave('regret-count', String(count)); }
+function endExperience() {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  show('s1');
 }
-function endExperience(){if(currentAudio){currentAudio.pause();currentAudio=null;}show('s1');}
 
-async function requestMic(){
-  // Only reached if user explicitly taps "allow microphone" on the permission screen,
-  // which is now only shown when the browser can actually prompt.
-  document.getElementById('perm-err').textContent='';
-  try{
-    var stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    micStream=stream;micGranted=true;simMode=false;setupAudio(stream);show('s2');initVMBars();
-  }catch(err){
-    simMode=true;micGranted=true;show('s2');initVMBars();
+// ── Microphone flow ────────────────────────────────────────────────────────
+// Tapping Record: try to get mic immediately.
+// - If the browser prompts → user sees native dialog, we proceed with real audio.
+// - If blocked (sandboxed iframe, denied) → fall back to sim mode silently.
+// The in-app permission screen (sp) is shown as a friendly intermediary first.
+function onTapRecord() {
+  if (micGranted) { show('s2'); return; }
+  show('sp');
+}
+
+function requestMic() {
+  var errEl = document.getElementById('perm-err');
+  var btn = document.getElementById('allow-btn');
+  errEl.textContent = '';
+  btn.textContent = 'requesting…';
+  btn.disabled = true;
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    // Environment doesn't support mic at all → sim mode
+    simMode = true; micGranted = true;
+    initVMBars(); show('s2');
+    return;
   }
+
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function(stream) {
+      micStream = stream;
+      micGranted = true;
+      simMode = false;
+      setupAudio(stream);
+      initVMBars();
+      show('s2');
+      btn.textContent = 'allow microphone';
+      btn.disabled = false;
+    })
+    .catch(function(err) {
+      // Denied or blocked → fall back to sim, still let them "record"
+      simMode = true;
+      micGranted = true;
+      errEl.textContent = 'Microphone unavailable — using silent mode.';
+      setTimeout(function(){ initVMBars(); show('s2'); }, 800);
+      btn.textContent = 'allow microphone';
+      btn.disabled = false;
+    });
 }
-function setupAudio(stream){
-  try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();analyser=audioCtx.createAnalyser();analyser.fftSize=256;audioCtx.createMediaStreamSource(stream).connect(analyser);}catch(e){analyser=null;}
+
+function setupAudio(stream) {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+  } catch(e) { analyser = null; }
 }
-function initVMBars(){
-  var c=document.getElementById('vm-bars');c.innerHTML='';vmBarEls=[];vmTargets=[];
-  for(var i=0;i<NUM_BARS;i++){var b=document.createElement('div');b.className='vm-bar';b.style.height='4px';c.appendChild(b);vmBarEls.push(b);vmTargets.push(4);}
+
+// ── Waveform bars ──────────────────────────────────────────────────────────
+function initVMBars() {
+  var c = document.getElementById('vm-bars');
+  c.innerHTML = ''; vmBarEls = []; vmTargets = [];
+  for (var i = 0; i < NUM_BARS; i++) {
+    var b = document.createElement('div');
+    b.className = 'vm-bar'; b.style.height = '4px';
+    c.appendChild(b); vmBarEls.push(b); vmTargets.push(4);
+  }
   startIdleAnimation();
 }
-function startIdleAnimation(){
-  if(idleRaf){cancelAnimationFrame(idleRaf);idleRaf=null;}
-  var t0=Date.now();
-  function tick(){
-    if(recOn)return;
-    var t=(Date.now()-t0)/1000;
-    for(var i=0;i<NUM_BARS;i++){
-      var ph=i*0.22,wave=Math.sin(t*1.2+ph)*0.5+Math.sin(t*0.7+ph*1.3)*0.3+Math.sin(t*2.1+ph*0.6)*0.2;
-      var cb=1-Math.abs(i-NUM_BARS/2)/(NUM_BARS/2)*0.6,h=Math.max(3,Math.min(28,4+wave*6*cb+cb*8));
-      vmTargets[i]=vmTargets[i]*0.82+h*0.18;vmBarEls[i].style.height=vmTargets[i].toFixed(1)+'px';
+
+function startIdleAnimation() {
+  if (idleRaf) { cancelAnimationFrame(idleRaf); idleRaf = null; }
+  var t0 = Date.now();
+  function tick() {
+    if (recOn) return;
+    var t = (Date.now() - t0) / 1000;
+    for (var i = 0; i < NUM_BARS; i++) {
+      var ph = i * 0.22;
+      var wave = Math.sin(t*1.2+ph)*0.5 + Math.sin(t*0.7+ph*1.3)*0.3 + Math.sin(t*2.1+ph*0.6)*0.2;
+      var cb = 1 - Math.abs(i - NUM_BARS/2) / (NUM_BARS/2) * 0.6;
+      var h = Math.max(3, Math.min(28, 4 + wave*6*cb + cb*8));
+      vmTargets[i] = vmTargets[i]*0.82 + h*0.18;
+      vmBarEls[i].style.height = vmTargets[i].toFixed(1) + 'px';
     }
-    idleRaf=requestAnimationFrame(tick);
+    idleRaf = requestAnimationFrame(tick);
   }
   tick();
 }
-function recordLoop(){
-  if(!recOn)return;if(!analyser){simLoop();return;}
-  var data=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(data);
-  for(var i=0;i<NUM_BARS;i++){var bi=Math.floor(i/NUM_BARS*data.length*0.7),raw=data[bi]/255,cw=1-Math.abs(i-NUM_BARS/2)/(NUM_BARS/2)*0.45,h=4+(raw+Math.random()*0.15)*60*cw;vmTargets[i]=vmTargets[i]*0.55+Math.max(3,Math.min(72,h))*0.45;vmBarEls[i].style.height=vmTargets[i].toFixed(1)+'px';}
-  animFrame=requestAnimationFrame(recordLoop);
+
+function recordLoop() {
+  if (!recOn) return;
+  if (!analyser) { simLoop(); return; }
+  var data = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  for (var i = 0; i < NUM_BARS; i++) {
+    var bi = Math.floor(i / NUM_BARS * data.length * 0.7);
+    var raw = data[bi] / 255;
+    var cw = 1 - Math.abs(i - NUM_BARS/2) / (NUM_BARS/2) * 0.45;
+    var h = 4 + (raw + Math.random()*0.15) * 60 * cw;
+    vmTargets[i] = vmTargets[i]*0.55 + Math.max(3, Math.min(72, h))*0.45;
+    vmBarEls[i].style.height = vmTargets[i].toFixed(1) + 'px';
+  }
+  animFrame = requestAnimationFrame(recordLoop);
 }
-function simLoop(){
-  if(!recOn)return;var t=Date.now()/1000;
-  for(var i=0;i<NUM_BARS;i++){var ph=i*0.3,wave=Math.sin(t*3.5+ph)*0.5+Math.sin(t*5.2+ph*1.4)*0.3+Math.sin(t*1.8+ph*0.8)*0.2,cw=1-Math.abs(i-NUM_BARS/2)/(NUM_BARS/2)*0.4,h=8+(wave+Math.random()*0.3)*30*cw+cw*12;vmTargets[i]=vmTargets[i]*0.6+Math.max(3,Math.min(68,h))*0.4;vmBarEls[i].style.height=vmTargets[i].toFixed(1)+'px';}
-  animFrame=requestAnimationFrame(simLoop);
+
+function simLoop() {
+  if (!recOn) return;
+  var t = Date.now() / 1000;
+  for (var i = 0; i < NUM_BARS; i++) {
+    var ph = i * 0.3;
+    var wave = Math.sin(t*3.5+ph)*0.5 + Math.sin(t*5.2+ph*1.4)*0.3 + Math.sin(t*1.8+ph*0.8)*0.2;
+    var cw = 1 - Math.abs(i - NUM_BARS/2) / (NUM_BARS/2) * 0.4;
+    var h = 8 + (wave + Math.random()*0.3)*30*cw + cw*12;
+    vmTargets[i] = vmTargets[i]*0.6 + Math.max(3, Math.min(68, h))*0.4;
+    vmBarEls[i].style.height = vmTargets[i].toFixed(1) + 'px';
+  }
+  animFrame = requestAnimationFrame(simLoop);
 }
-function buildPbWaveform(){
-  var wf=document.getElementById('pb-waveform');wf.innerHTML='';pbBars=[];
-  for(var i=0;i<60;i++){var d=document.createElement('div');d.className='pb-wbar';var c=1-Math.abs(i-30)/30*0.5,h=4+Math.random()*22*c+c*6;d.style.height=h.toFixed(1)+'px';d.style.background='rgba(160,80,40,0.35)';wf.appendChild(d);pbBars.push({el:d,h:h});}
-}
-function updatePbProgress(){
-  if(!pbAudio||!pbBars.length)return;
-  var pct=pbAudio.duration?pbAudio.currentTime/pbAudio.duration:0,filled=Math.floor(pct*pbBars.length);
-  pbBars.forEach(function(b,i){b.el.style.background=i<filled?'rgba(200,88,40,0.85)':'rgba(160,80,40,0.35)';});
-  document.getElementById('pb-elapsed').textContent=fmt(pbAudio.currentTime||0);
-  document.getElementById('pb-total').textContent=fmt(pbAudio.duration||secs||0);
-  if(pbIsPlaying)pbRaf=requestAnimationFrame(updatePbProgress);
-}
-function showPlaybackPanel(blob){
-  pbBlob=blob;buildPbWaveform();
-  document.getElementById('pb-total').textContent=fmt(secs);document.getElementById('pb-elapsed').textContent='00:00';
-  document.getElementById('playback-panel').classList.add('visible');document.getElementById('rerecord-btn').classList.add('visible');
-}
-function togglePlayback(){
-  if(!pbBlob&&!simMode)return;
-  if(pbIsPlaying){pbIsPlaying=false;if(pbAudio)pbAudio.pause();if(pbRaf)cancelAnimationFrame(pbRaf);setPbIcon(false);document.getElementById('pb-btn').classList.remove('playing');}
-  else{
-    if(!pbAudio){if(!pbBlob){return;}pbAudio=new Audio(URL.createObjectURL(pbBlob));pbAudio.onended=function(){pbIsPlaying=false;if(pbRaf)cancelAnimationFrame(pbRaf);setPbIcon(false);document.getElementById('pb-btn').classList.remove('playing');pbBars.forEach(function(b){b.el.style.background='rgba(160,80,40,0.35)';});document.getElementById('pb-elapsed').textContent='00:00';};}
-    else{pbAudio.currentTime=0;}
-    pbIsPlaying=true;pbAudio.play();setPbIcon(true);document.getElementById('pb-btn').classList.add('playing');pbRaf=requestAnimationFrame(updatePbProgress);
+
+// ── Playback panel ─────────────────────────────────────────────────────────
+function buildPbWaveform() {
+  var wf = document.getElementById('pb-waveform');
+  wf.innerHTML = ''; pbBars = [];
+  for (var i = 0; i < 60; i++) {
+    var d = document.createElement('div'); d.className = 'pb-wbar';
+    var c = 1 - Math.abs(i - 30) / 30 * 0.5;
+    var h = 4 + Math.random()*22*c + c*6;
+    d.style.height = h.toFixed(1) + 'px';
+    d.style.background = 'rgba(160,80,40,0.35)';
+    wf.appendChild(d); pbBars.push({ el: d, h: h });
   }
 }
-function seekPlayback(e){if(!pbAudio||!pbAudio.duration)return;var rect=e.currentTarget.getBoundingClientRect();pbAudio.currentTime=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width))*pbAudio.duration;if(!pbIsPlaying)updatePbProgress();}
-function setPbIcon(p){document.getElementById('pb-icon').innerHTML=p?'<rect x="4" y="3" width="3.5" height="12" fill="rgba(255,200,150,0.85)"/><rect x="10.5" y="3" width="3.5" height="12" fill="rgba(255,200,150,0.85)"/>':'<polygon points="5,3 15,9 5,15" fill="rgba(255,200,150,0.85)"/>';}
-function hidePlaybackPanel(){document.getElementById('playback-panel').classList.remove('visible');document.getElementById('rerecord-btn').classList.remove('visible');if(pbAudio){pbAudio.pause();pbAudio=null;}if(pbRaf)cancelAnimationFrame(pbRaf);pbIsPlaying=false;pbBlob=null;pbBars=[];}
-function reRecord(){hidePlaybackPanel();recDone=false;document.getElementById('rsub').disabled=true;document.getElementById('rec-status-txt').textContent='press to begin';document.getElementById('rtimer').textContent='—';document.getElementById('voicememo-wrap').className='voicememo-wrap';startIdleAnimation();}
-function toggleRec(){recOn?stopRecording():startRecording();}
-function startRecording(){
-  hidePlaybackPanel();audioChunks=[];
-  if(!simMode&&micStream){try{mediaRecorder=new MediaRecorder(micStream);mediaRecorder.ondataavailable=function(e){if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.start(100);}catch(e){simMode=true;}}
-  recOn=true;secs=0;if(idleRaf){cancelAnimationFrame(idleRaf);idleRaf=null;}
-  document.getElementById('voicememo-wrap').className='voicememo-wrap recording';
-  document.getElementById('rbtn').classList.add('on');document.getElementById('reddot').classList.add('on');
-  document.getElementById('rec-status-txt').textContent=simMode?'speak, then release':'recording';
-  document.getElementById('rtimer').textContent='00:00';document.getElementById('rsub').disabled=true;
-  tiInt=setInterval(function(){secs++;document.getElementById('rtimer').textContent=fmt(secs);},1000);
-  setRecIcon(true);simMode?simLoop():recordLoop();
+
+function showPlaybackPanel(blob) {
+  // Revoke any old object URL
+  if (pbURL) { URL.revokeObjectURL(pbURL); pbURL = null; }
+  pbBlob = blob;
+  if (blob) { pbURL = URL.createObjectURL(blob); }
+  buildPbWaveform();
+  document.getElementById('pb-total').textContent = fmt(secs);
+  document.getElementById('pb-elapsed').textContent = '00:00';
+  document.getElementById('playback-panel').classList.add('visible');
+  document.getElementById('rerecord-btn').classList.add('visible');
+  document.getElementById('rsub').disabled = false;
 }
-function stopRecording(){
-  recOn=false;clearInterval(tiInt);if(animFrame)cancelAnimationFrame(animFrame);
-  if(mediaRecorder&&mediaRecorder.state!=='inactive'){mediaRecorder.stop();mediaRecorder.onstop=function(){if(audioChunks.length>0)showPlaybackPanel(new Blob(audioChunks,{type:'audio/webm'}));};}
-  else if(simMode){showPlaybackPanel(null);}
-  document.getElementById('rbtn').classList.remove('on');document.getElementById('reddot').classList.remove('on');
-  document.getElementById('rec-status-txt').textContent='recording complete';
-  document.getElementById('voicememo-wrap').className='voicememo-wrap done';
-  recDone=true;document.getElementById('rsub').disabled=false;setRecIcon(false);
-  setTimeout(function(){document.getElementById('voicememo-wrap').className='voicememo-wrap';startIdleAnimation();},1800);
+
+function updatePbProgress() {
+  if (!pbAudio || !pbBars.length) return;
+  var pct = pbAudio.duration ? pbAudio.currentTime / pbAudio.duration : 0;
+  var filled = Math.floor(pct * pbBars.length);
+  pbBars.forEach(function(b, i) {
+    b.el.style.background = i < filled ? 'rgba(200,88,40,0.85)' : 'rgba(160,80,40,0.35)';
+  });
+  document.getElementById('pb-elapsed').textContent = fmt(pbAudio.currentTime || 0);
+  document.getElementById('pb-total').textContent = fmt(pbAudio.duration || secs || 0);
+  if (pbIsPlaying) pbRaf = requestAnimationFrame(updatePbProgress);
 }
-function setRecIcon(r){document.getElementById('rec-icon').innerHTML=r?'<rect x="8" y="8" width="12" height="12" rx="2" fill="rgba(255,255,255,0.9)"/>':'<circle cx="14" cy="14" r="9" fill="#c85020"/>';}
-function stopAndBack(){if(recOn)stopRecording();show('s1');}
-function onWrite(){var v=document.getElementById('wtxt').value;document.getElementById('wct').textContent=v.length+' characters';document.getElementById('wsub').disabled=v.length<4;}
-function saveConfession(data){var k='confession-'+count;memStore[k]=JSON.stringify(data);lsPersist(k,JSON.stringify(data));}
-function getAllConfessionKeys(){return store.list('confession-').then(function(r){return(r&&r.keys)?r.keys.filter(function(k){return k!=='confession-keys'}):[];});}
-function blobToBase64(blob){return new Promise(function(res){var r=new FileReader();r.onloadend=function(){res(r.result);};r.readAsDataURL(blob);});}
-function submitText(){
-  var txt=document.getElementById('wtxt').value.trim();if(!txt)return;
-  document.getElementById('wtxt').value='';document.getElementById('wct').textContent='0 characters';document.getElementById('wsub').disabled=true;
-  count++;saveCount();saveConfession({type:'text',text:txt});updateTag();
-  document.getElementById('conf-count').textContent='confession '+String(count).padStart(2,'0');
-  show('s4');startGalaxy();if(currentAudio){currentAudio.pause();currentAudio=null;}
+
+function togglePlayback() {
+  if (pbIsPlaying) {
+    pbIsPlaying = false;
+    if (pbAudio) pbAudio.pause();
+    if (pbRaf) cancelAnimationFrame(pbRaf);
+    setPbIcon(false);
+    document.getElementById('pb-btn').classList.remove('playing');
+    return;
+  }
+  // Need a real blob URL to play back
+  if (!pbURL) return;
+  if (!pbAudio) {
+    pbAudio = new Audio(pbURL);
+    pbAudio.onended = function() {
+      pbIsPlaying = false;
+      if (pbRaf) cancelAnimationFrame(pbRaf);
+      setPbIcon(false);
+      document.getElementById('pb-btn').classList.remove('playing');
+      pbBars.forEach(function(b){ b.el.style.background = 'rgba(160,80,40,0.35)'; });
+      document.getElementById('pb-elapsed').textContent = '00:00';
+    };
+  } else {
+    pbAudio.currentTime = 0;
+  }
+  pbIsPlaying = true;
+  pbAudio.play();
+  setPbIcon(true);
+  document.getElementById('pb-btn').classList.add('playing');
+  pbRaf = requestAnimationFrame(updatePbProgress);
 }
-function submitAudio(){
-  hidePlaybackPanel();count++;saveCount();updateTag();
-  document.getElementById('conf-count').textContent='confession '+String(count).padStart(2,'0');
-  document.getElementById('rsub').disabled=true;document.getElementById('rtimer').textContent='—';
-  document.getElementById('rec-status-txt').textContent='press to begin';
-  document.getElementById('voicememo-wrap').className='voicememo-wrap';
-  startIdleAnimation();show('s4');startGalaxy();if(currentAudio){currentAudio.pause();currentAudio=null;}
-  if(!simMode&&audioChunks.length>0){var blob=pbBlob||new Blob(audioChunks,{type:'audio/webm'});blobToBase64(blob).then(function(b64){saveConfession({type:'audio',data:b64,duration:secs});});}
-  else{saveConfession({type:'text',text:'[voice confession — simulated]'});}
+
+function seekPlayback(e) {
+  if (!pbAudio || !pbAudio.duration) return;
+  var rect = e.currentTarget.getBoundingClientRect();
+  pbAudio.currentTime = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * pbAudio.duration;
+  if (!pbIsPlaying) updatePbProgress();
 }
-async function openRandomConfession(){
-  show('s5');if(currentAudio){currentAudio.pause();currentAudio=null;}
-  document.getElementById('confession-card').innerHTML='<div class="written-text loading">searching the archive…</div>';
-  document.getElementById('listen-num').textContent='';
-  var keys=await getAllConfessionKeys();var chosen=null;
-  if(keys.length>0){var pick=keys[Math.floor(Math.random()*keys.length)];try{var r=await store.get(pick);if(r&&r.value)chosen=JSON.parse(r.value);}catch(e){}}
-  if(!chosen)chosen=seedConfessions[Math.floor(Math.random()*seedConfessions.length)];
-  var num=keys.length>0?keys.length:seedConfessions.length;
-  document.getElementById('listen-num').textContent='from '+num+' confession'+(num===1?'':'s')+' in the archive';
-  if(chosen.type==='text'){document.getElementById('confession-card').innerHTML='<div class="written-text">'+escHtml(chosen.text)+'</div>';}
-  else if(chosen.type==='audio'){renderAudioPlayer(chosen);}
+
+function setPbIcon(playing) {
+  document.getElementById('pb-icon').innerHTML = playing
+    ? '<rect x="4" y="3" width="3.5" height="12" fill="rgba(255,200,150,0.85)"/><rect x="10.5" y="3" width="3.5" height="12" fill="rgba(255,200,150,0.85)"/>'
+    : '<polygon points="5,3 15,9 5,15" fill="rgba(255,200,150,0.85)"/>';
 }
-function renderAudioPlayer(conf){var card=document.getElementById('confession-card'),dur=conf.duration||0,durStr=fmt(dur),bars=Array.from({length:40},function(){var h=8+Math.floor(Math.random()*22);return'<div class="aw-bar" style="height:'+h+'px"></div>';}).join('');card.innerHTML='<div class="audio-card"><div class="audio-label">voice confession</div><div class="play-row"><div class="play-btn" id="play-btn" onclick="toggleAudio(\''+conf.data+'\')"><svg id="play-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="6,4 16,10 6,16" fill="rgba(255,200,150,0.85)"/></svg></div><div class="audio-waveform">'+bars+'</div></div><div class="audio-timer" id="audio-timer">00:00 / '+durStr+'</div></div>';}
-function toggleAudio(src){if(currentAudio&&!currentAudio.paused){currentAudio.pause();var ic=document.getElementById('play-icon');if(ic)ic.innerHTML='<polygon points="6,4 16,10 6,16" fill="rgba(255,200,150,0.85)"/>';return;}if(!currentAudio||currentAudio._src!==src){if(currentAudio)currentAudio.pause();currentAudio=new Audio(src);currentAudio._src=src;currentAudio.ontimeupdate=function(){var el=document.getElementById('audio-timer');if(!el)return;el.textContent=fmt(currentAudio.currentTime)+' / '+fmt(currentAudio.duration||0);};currentAudio.onended=function(){var ic=document.getElementById('play-icon');if(ic)ic.innerHTML='<polygon points="6,4 16,10 6,16" fill="rgba(255,200,150,0.85)"/>';};}currentAudio.play();var ic=document.getElementById('play-icon');if(ic)ic.innerHTML='<rect x="5" y="4" width="4" height="12" fill="rgba(255,200,150,0.85)"/><rect x="11" y="4" width="4" height="12" fill="rgba(255,200,150,0.85)"/>';}
-function startGalaxy(){
-  if(galaxyRaf){cancelAnimationFrame(galaxyRaf);galaxyRaf=null;}
-  var cv=document.getElementById('galaxy'),wrap=cv.parentElement,W=wrap.clientWidth||390,H=wrap.clientHeight||340;
-  cv.width=W;cv.height=H;var ctx=cv.getContext('2d'),cx=W/2,cy=H*0.55;
-  var stars=Array.from({length:120},function(){return{x:Math.random()*W,y:Math.random()*H,r:0.3+Math.random()*0.9,a:0.1+Math.random()*0.5,ts:0.005+Math.random()*0.015,to:Math.random()*Math.PI*2};});
-  var nebulae=[{x:cx-40,y:cy-30,rx:90,ry:55,r1:'rgba(180,80,30,',r2:'rgba(120,40,60,',a:0.13,dx:0.06,dy:-0.03,t:0},{x:cx+50,y:cy-60,rx:70,ry:40,r1:'rgba(100,50,150,',r2:'rgba(60,80,180,',a:0.1,dx:-0.05,dy:0.04,t:1.5},{x:cx-20,y:cy+20,rx:110,ry:60,r1:'rgba(200,100,20,',r2:'rgba(150,60,30,',a:0.08,dx:0.03,dy:-0.05,t:3},{x:cx+30,y:cy-10,rx:50,ry:80,r1:'rgba(80,40,120,',r2:'rgba(140,60,100,',a:0.09,dx:-0.04,dy:0.03,t:0.8}];
-  var particles=Array.from({length:80},function(){var a=Math.random()*Math.PI*2,sp=0.12+Math.random()*0.35,sr=5+Math.random()*30;return{x:cx+Math.cos(a)*sr,y:cy+Math.sin(a)*sr,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:0.4+Math.random()*1.8,life:0.6+Math.random()*0.4,decay:0.0015+Math.random()*0.003,color:Math.random()<0.6?'255,200,160':'200,160,255'};});
-  var filaments=Array.from({length:18},function(){var a=Math.random()*Math.PI*2,len=30+Math.random()*80;return{x1:cx+Math.cos(a)*(10+Math.random()*20),y1:cy+Math.sin(a)*(10+Math.random()*20),x2:cx+Math.cos(a)*len,y2:cy+Math.sin(a)*len,cpx:cx+Math.cos(a+0.6)*(len*0.5),cpy:cy+Math.sin(a+0.6)*(len*0.5),life:0.3+Math.random()*0.4,decay:0.001+Math.random()*0.002,hue:Math.random()<0.5?'255,160,80':'180,120,255'};});
-  var t=0;
-  function draw(){
+
+function hidePlaybackPanel() {
+  document.getElementById('playback-panel').classList.remove('visible');
+  document.getElementById('rerecord-btn').classList.remove('visible');
+  if (pbAudio) { pbAudio.pause(); pbAudio = null; }
+  if (pbRaf) cancelAnimationFrame(pbRaf);
+  pbIsPlaying = false;
+  pbBlob = null;
+  // Keep pbURL alive until next recording so submitted audio can still be saved
+  pbBars = [];
+}
+
+function reRecord() {
+  hidePlaybackPanel();
+  if (pbURL) { URL.revokeObjectURL(pbURL); pbURL = null; }
+  document.getElementById('rsub').disabled = true;
+  document.getElementById('rec-status-txt').textContent = 'press to begin';
+  document.getElementById('rtimer').textContent = '—';
+  document.getElementById('voicememo-wrap').className = 'voicememo-wrap';
+  startIdleAnimation();
+}
+
+// ── Recording controls ─────────────────────────────────────────────────────
+function toggleRec() { recOn ? stopRecording() : startRecording(); }
+
+function startRecording() {
+  hidePlaybackPanel();
+  if (pbURL) { URL.revokeObjectURL(pbURL); pbURL = null; }
+  audioChunks = [];
+
+  if (!simMode && micStream) {
+    try {
+      // Prefer formats with broad support
+      var mimeType = '';
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = 'audio/webm';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+        mimeType = 'audio/ogg;codecs=opus';
+      }
+      var opts = mimeType ? { mimeType: mimeType } : {};
+      mediaRecorder = new MediaRecorder(micStream, opts);
+      mediaRecorder.ondataavailable = function(e) {
+        if (e.data && e.data.size > 0) audioChunks.push(e.data);
+      };
+      mediaRecorder.start(100); // collect every 100ms
+    } catch(e) {
+      simMode = true; // fallback if MediaRecorder fails
+    }
+  }
+
+  recOn = true; secs = 0;
+  if (idleRaf) { cancelAnimationFrame(idleRaf); idleRaf = null; }
+  document.getElementById('voicememo-wrap').className = 'voicememo-wrap recording';
+  document.getElementById('rbtn').classList.add('on');
+  document.getElementById('reddot').classList.add('on');
+  document.getElementById('rec-status-txt').textContent = simMode ? 'recording (no mic)' : 'recording';
+  document.getElementById('rtimer').textContent = '00:00';
+  document.getElementById('rsub').disabled = true;
+  tiInt = setInterval(function() { secs++; document.getElementById('rtimer').textContent = fmt(secs); }, 1000);
+  setRecIcon(true);
+  simMode ? simLoop() : recordLoop();
+}
+
+function stopRecording() {
+  recOn = false;
+  clearInterval(tiInt);
+  if (animFrame) cancelAnimationFrame(animFrame);
+
+  document.getElementById('rbtn').classList.remove('on');
+  document.getElementById('reddot').classList.remove('on');
+  document.getElementById('rec-status-txt').textContent = 'recording complete';
+  document.getElementById('voicememo-wrap').className = 'voicememo-wrap done';
+  setRecIcon(false);
+
+  if (!simMode && mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.onstop = function() {
+      if (audioChunks.length > 0) {
+        var mimeType = mediaRecorder.mimeType || 'audio/webm';
+        var blob = new Blob(audioChunks, { type: mimeType });
+        showPlaybackPanel(blob);
+      } else {
+        // No data collected — fall back gracefully
+        showPlaybackPanel(null);
+      }
+    };
+    mediaRecorder.stop();
+  } else {
+    // Sim mode — no real audio but still show the panel so UX flows
+    showPlaybackPanel(null);
+  }
+
+  setTimeout(function() {
+    document.getElementById('voicememo-wrap').className = 'voicememo-wrap';
+    startIdleAnimation();
+  }, 1800);
+}
+
+function setRecIcon(isRec) {
+  document.getElementById('rec-icon').innerHTML = isRec
+    ? '<rect x="8" y="8" width="12" height="12" rx="2" fill="rgba(255,255,255,0.9)"/>'
+    : '<circle cx="14" cy="14" r="9" fill="#c85020"/>';
+}
+
+function stopAndBack() { if (recOn) stopRecording(); show('s1'); }
+
+// ── Text input ─────────────────────────────────────────────────────────────
+function onWrite() {
+  var v = document.getElementById('wtxt').value;
+  document.getElementById('wct').textContent = v.length + ' characters';
+  document.getElementById('wsub').disabled = v.length < 4;
+}
+
+// ── Save confessions ───────────────────────────────────────────────────────
+function saveConfession(data) {
+  storeSave('confession-' + count, JSON.stringify(data));
+}
+
+function blobToBase64(blob) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onloadend = function() { resolve(reader.result); };
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+function submitText() {
+  var txt = document.getElementById('wtxt').value.trim();
+  if (!txt) return;
+  document.getElementById('wtxt').value = '';
+  document.getElementById('wct').textContent = '0 characters';
+  document.getElementById('wsub').disabled = true;
+  count++; saveCount();
+  saveConfession({ type: 'text', text: txt });
+  updateTag();
+  document.getElementById('conf-count').textContent = 'confession ' + String(count).padStart(2,'0');
+  show('s4'); startGalaxy();
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+}
+
+function submitAudio() {
+  var recordedBlob = pbBlob; // capture before hidePlaybackPanel clears it
+  var recordedURL = pbURL;
+  var recordedSecs = secs;
+
+  hidePlaybackPanel();
+  count++; saveCount(); updateTag();
+  document.getElementById('conf-count').textContent = 'confession ' + String(count).padStart(2,'0');
+  document.getElementById('rsub').disabled = true;
+  document.getElementById('rtimer').textContent = '—';
+  document.getElementById('rec-status-txt').textContent = 'press to begin';
+  document.getElementById('voicememo-wrap').className = 'voicememo-wrap';
+  startIdleAnimation();
+  show('s4'); startGalaxy();
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+  // Persist the recording if we have real audio
+  if (recordedBlob) {
+    blobToBase64(recordedBlob).then(function(b64) {
+      saveConfession({ type: 'audio', data: b64, duration: recordedSecs });
+      if (recordedURL) { URL.revokeObjectURL(recordedURL); }
+    });
+  } else {
+    saveConfession({ type: 'text', text: '[voice confession]' });
+  }
+}
+
+// ── Listen screen ──────────────────────────────────────────────────────────
+function openRandomConfession() {
+  show('s5');
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  document.getElementById('confession-card').innerHTML = '<div class="written-text loading">searching the archive…</div>';
+  document.getElementById('listen-num').textContent = '';
+
+  var keys = storeKeys('confession-');
+  var chosen = null;
+  if (keys.length > 0) {
+    var pick = keys[Math.floor(Math.random() * keys.length)];
+    try { var raw = storeGet(pick); if (raw) chosen = JSON.parse(raw); } catch(e) {}
+  }
+  if (!chosen) chosen = seedConfessions[Math.floor(Math.random() * seedConfessions.length)];
+  var num = keys.length > 0 ? keys.length : seedConfessions.length;
+  document.getElementById('listen-num').textContent = 'from ' + num + ' confession' + (num === 1 ? '' : 's') + ' in the archive';
+
+  if (chosen.type === 'text') {
+    document.getElementById('confession-card').innerHTML = '<div class="written-text">' + escHtml(chosen.text) + '</div>';
+  } else if (chosen.type === 'audio') {
+    renderAudioPlayer(chosen);
+  }
+}
+
+function renderAudioPlayer(conf) {
+  var card = document.getElementById('confession-card');
+  var dur = conf.duration || 0;
+  var bars = Array.from({length:40}, function() {
+    var h = 8 + Math.floor(Math.random() * 22);
+    return '<div class="aw-bar" style="height:' + h + 'px"></div>';
+  }).join('');
+  card.innerHTML = '<div class="audio-card">'
+    + '<div class="audio-label">voice confession</div>'
+    + '<div class="play-row">'
+    + '<div class="play-btn" id="play-btn" onclick="toggleArchiveAudio(\'' + escHtml(conf.data) + '\',' + dur + ')">'
+    + '<svg id="play-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="6,4 16,10 6,16" fill="rgba(255,200,150,0.85)"/></svg>'
+    + '</div>'
+    + '<div class="audio-waveform">' + bars + '</div>'
+    + '</div>'
+    + '<div class="audio-timer" id="audio-timer">00:00 / ' + fmt(dur) + '</div>'
+    + '</div>';
+}
+
+function toggleArchiveAudio(src, dur) {
+  if (currentAudio && !currentAudio.paused) {
+    currentAudio.pause();
+    var ic = document.getElementById('play-icon');
+    if (ic) ic.innerHTML = '<polygon points="6,4 16,10 6,16" fill="rgba(255,200,150,0.85)"/>';
+    return;
+  }
+  if (!currentAudio || currentAudio._src !== src) {
+    if (currentAudio) currentAudio.pause();
+    currentAudio = new Audio(src);
+    currentAudio._src = src;
+    currentAudio.ontimeupdate = function() {
+      var el = document.getElementById('audio-timer');
+      if (!el) return;
+      el.textContent = fmt(currentAudio.currentTime) + ' / ' + fmt(currentAudio.duration || dur);
+    };
+    currentAudio.onended = function() {
+      var ic = document.getElementById('play-icon');
+      if (ic) ic.innerHTML = '<polygon points="6,4 16,10 6,16" fill="rgba(255,200,150,0.85)"/>';
+    };
+  }
+  currentAudio.play();
+  var ic = document.getElementById('play-icon');
+  if (ic) ic.innerHTML = '<rect x="5" y="4" width="4" height="12" fill="rgba(255,200,150,0.85)"/><rect x="11" y="4" width="4" height="12" fill="rgba(255,200,150,0.85)"/>';
+}
+
+// ── Galaxy animation ───────────────────────────────────────────────────────
+function startGalaxy() {
+  if (galaxyRaf) { cancelAnimationFrame(galaxyRaf); galaxyRaf = null; }
+  var cv = document.getElementById('galaxy');
+  var wrap = cv.parentElement;
+  var W = wrap.clientWidth || 390, H = wrap.clientHeight || 340;
+  cv.width = W; cv.height = H;
+  var ctx = cv.getContext('2d');
+  var cx = W/2, cy = H*0.55;
+  var stars = Array.from({length:120}, function() {
+    return {x:Math.random()*W,y:Math.random()*H,r:0.3+Math.random()*0.9,a:0.1+Math.random()*0.5,ts:0.005+Math.random()*0.015,to:Math.random()*Math.PI*2};
+  });
+  var nebulae = [
+    {x:cx-40,y:cy-30,rx:90,ry:55,r1:'rgba(180,80,30,',r2:'rgba(120,40,60,',a:0.13,dx:0.06,dy:-0.03,t:0},
+    {x:cx+50,y:cy-60,rx:70,ry:40,r1:'rgba(100,50,150,',r2:'rgba(60,80,180,',a:0.1,dx:-0.05,dy:0.04,t:1.5},
+    {x:cx-20,y:cy+20,rx:110,ry:60,r1:'rgba(200,100,20,',r2:'rgba(150,60,30,',a:0.08,dx:0.03,dy:-0.05,t:3},
+    {x:cx+30,y:cy-10,rx:50,ry:80,r1:'rgba(80,40,120,',r2:'rgba(140,60,100,',a:0.09,dx:-0.04,dy:0.03,t:0.8}
+  ];
+  var particles = Array.from({length:80}, function() {
+    var a=Math.random()*Math.PI*2,sp=0.12+Math.random()*0.35,sr=5+Math.random()*30;
+    return {x:cx+Math.cos(a)*sr,y:cy+Math.sin(a)*sr,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:0.4+Math.random()*1.8,life:0.6+Math.random()*0.4,decay:0.0015+Math.random()*0.003,color:Math.random()<0.6?'255,200,160':'200,160,255'};
+  });
+  var filaments = Array.from({length:18}, function() {
+    var a=Math.random()*Math.PI*2,len=30+Math.random()*80;
+    return {x1:cx+Math.cos(a)*(10+Math.random()*20),y1:cy+Math.sin(a)*(10+Math.random()*20),x2:cx+Math.cos(a)*len,y2:cy+Math.sin(a)*len,cpx:cx+Math.cos(a+0.6)*(len*0.5),cpy:cy+Math.sin(a+0.6)*(len*0.5),life:0.3+Math.random()*0.4,decay:0.001+Math.random()*0.002,hue:Math.random()<0.5?'255,160,80':'180,120,255'};
+  });
+  var t = 0;
+  function draw() {
     ctx.clearRect(0,0,W,H);
-    stars.forEach(function(s){var tw=s.a*(0.5+0.5*Math.sin(t*s.ts+s.to));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,240,220,'+tw+')';ctx.fill();});
-    nebulae.forEach(function(n){n.x+=n.dx;n.y+=n.dy;var gx=n.x+Math.sin(t*0.008+n.t)*8,gy=n.y+Math.cos(t*0.006+n.t)*5,g=ctx.createRadialGradient(gx,gy,0,gx,gy,n.rx);g.addColorStop(0,n.r1+n.a+')');g.addColorStop(0.5,n.r2+(n.a*0.5)+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.save();ctx.translate(gx,gy);ctx.scale(1,n.ry/n.rx);ctx.translate(-gx,-gy);ctx.beginPath();ctx.arc(gx,gy,n.rx,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.restore();});
-    filaments.forEach(function(f){if(f.life<=0)return;ctx.beginPath();ctx.moveTo(f.x1,f.y1);ctx.quadraticCurveTo(f.cpx,f.cpy,f.x2,f.y2);ctx.strokeStyle='rgba('+f.hue+','+f.life*0.6+')';ctx.lineWidth=0.5;ctx.stroke();f.x2+=((f.x2-cx)*0.005);f.y2+=((f.y2-cy)*0.005);f.life-=f.decay;});
-    particles.forEach(function(p){if(p.life<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba('+p.color+','+p.life+')';ctx.fill();p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;p.vx*=0.998;p.vy*=0.998;});
-    var core=ctx.createRadialGradient(cx,cy,0,cx,cy,40);core.addColorStop(0,'rgba(220,130,60,0.18)');core.addColorStop(0.4,'rgba(180,80,40,0.08)');core.addColorStop(1,'rgba(0,0,0,0)');ctx.beginPath();ctx.arc(cx,cy,40,0,Math.PI*2);ctx.fillStyle=core;ctx.fill();
-    t++;galaxyRaf=requestAnimationFrame(draw);
+    stars.forEach(function(s) {
+      var tw = s.a*(0.5+0.5*Math.sin(t*s.ts+s.to));
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(255,240,220,'+tw+')'; ctx.fill();
+    });
+    nebulae.forEach(function(n) {
+      n.x+=n.dx; n.y+=n.dy;
+      var gx=n.x+Math.sin(t*0.008+n.t)*8, gy=n.y+Math.cos(t*0.006+n.t)*5;
+      var g=ctx.createRadialGradient(gx,gy,0,gx,gy,n.rx);
+      g.addColorStop(0,n.r1+n.a+')'); g.addColorStop(0.5,n.r2+(n.a*0.5)+')'); g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.save(); ctx.translate(gx,gy); ctx.scale(1,n.ry/n.rx); ctx.translate(-gx,-gy);
+      ctx.beginPath(); ctx.arc(gx,gy,n.rx,0,Math.PI*2); ctx.fillStyle=g; ctx.fill(); ctx.restore();
+    });
+    filaments.forEach(function(f) {
+      if(f.life<=0)return;
+      ctx.beginPath(); ctx.moveTo(f.x1,f.y1); ctx.quadraticCurveTo(f.cpx,f.cpy,f.x2,f.y2);
+      ctx.strokeStyle='rgba('+f.hue+','+f.life*0.6+')'; ctx.lineWidth=0.5; ctx.stroke();
+      f.x2+=((f.x2-cx)*0.005); f.y2+=((f.y2-cy)*0.005); f.life-=f.decay;
+    });
+    particles.forEach(function(p) {
+      if(p.life<=0)return;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba('+p.color+','+p.life+')'; ctx.fill();
+      p.x+=p.vx; p.y+=p.vy; p.life-=p.decay; p.vx*=0.998; p.vy*=0.998;
+    });
+    var core=ctx.createRadialGradient(cx,cy,0,cx,cy,40);
+    core.addColorStop(0,'rgba(220,130,60,0.18)'); core.addColorStop(0.4,'rgba(180,80,40,0.08)'); core.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,40,0,Math.PI*2); ctx.fillStyle=core; ctx.fill();
+    t++; galaxyRaf = requestAnimationFrame(draw);
   }
   draw();
 }
+
+// ── Init ───────────────────────────────────────────────────────────────────
 loadCount();
 </script>
 </body>
